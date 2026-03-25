@@ -1,0 +1,1480 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#000000">
+<title>السيجة — أونلاين</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;600;700&family=Tajawal:wght@300;400;700;900&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+
+<style>
+/* ══════════════════════════════════════
+   DESIGN SYSTEM
+══════════════════════════════════════ */
+:root {
+  --bg:      #060809;
+  --surface: #0c0f12;
+  --panel:   #10141a;
+  --border:  #1a2030;
+  --border2: #232d3d;
+  --green:   #00e87a;
+  --yellow:  #ffcc00;
+  --red:     #ff3d3d;
+  --blue:    #3d9eff;
+  --cyan:    #00d4ff;
+  --dim:     #2a3545;
+  --text:    #bccdd8;
+  --text-dim:#4a5e72;
+  
+  /* المتغيرات الديناميكية للألوان - تتحدث برمجياً */
+  --p1:      #9B9B9B;
+  --p1-glow: rgba(155,155,155,0.25);
+  --p1-dim:  rgba(155,155,155,0.15);
+  --p2:      #9B9B9B;
+  --p2-glow: rgba(155,155,155,0.25);
+  --p2-dim:  rgba(155,155,155,0.15);
+}
+
+*  { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Tajawal', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+body { padding: 12px; }
+
+/* ── Screens ── */
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* ── Header ── */
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.header-left h1 {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: clamp(0.75rem, 3vw, 1rem);
+  color: var(--green);
+  letter-spacing: 0.06em;
+}
+.header-left p {
+  font-size: clamp(0.6rem, 2.5vw, 0.75rem);
+  color: var(--text-dim);
+  font-family: 'IBM Plex Mono', monospace;
+  margin-top: 5px;
+}
+
+/* ── Panel ── */
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+.panel-hd {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: clamp(0.65rem, 2vw, 0.8rem);
+  color: var(--text-dim);
+  letter-spacing: .05em;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* ── Buttons ── */
+.btn {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 1px solid;
+  transition: all .15s;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-dim   { border-color: var(--dim);   color: var(--text-dim); }
+.btn-dim:not(:disabled):hover   { background: var(--border); color: #fff; }
+.btn-green { border-color: var(--green); color: var(--green); }
+.btn-green:not(:disabled):hover { background: rgba(0,232,122,0.1); }
+.btn-red   { border-color: var(--red);   color: var(--red); }
+.btn-red:not(:disabled):hover   { background: rgba(255,61,61,0.1); }
+.btn-full  { width: 100%; justify-content: center; }
+
+/* ── Inputs ── */
+.field { margin-bottom: 14px; }
+.field label {
+  display: block;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.68rem;
+  color: var(--text-dim);
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+}
+.field input[type="text"] {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  padding: 10px 14px;
+  color: var(--text);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.85rem;
+  outline: none;
+  transition: border-color .2s;
+  direction: ltr;
+}
+.field input[type="text"]:focus { border-color: var(--green); }
+.field input[type="text"].err   { border-color: var(--red); }
+
+/* ── Colors Builder ── */
+.color-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.color-btn {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2.5px solid var(--border2);
+  transition: transform 0.2s, border-color 0.2s;
+}
+.color-btn.selected {
+  transform: scale(1.15);
+  border-color: #fff;
+}
+.color-btn.hollow {
+  background: transparent !important;
+  border: 3px solid #9B9B9B;
+}
+.color-btn.hollow.selected { border-color: #fff; }
+
+/* ── Avatar Builder ── */
+.avatar-tabs { display: flex; gap: 6px; margin-bottom: 12px; }
+.avatar-tab {
+  font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem;
+  padding: 6px 12px; border-radius: 5px; border: 1px solid var(--border2);
+  background: var(--surface); color: var(--text-dim); cursor: pointer; transition: all .15s;
+}
+.avatar-tab.active { border-color: var(--green); color: var(--green); background: rgba(0,232,122,0.06); }
+.avatar-pane { display: none; }
+.avatar-pane.active { display: block; }
+.emoji-grid {
+  display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px;
+  max-height: 160px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--border2) transparent;
+}
+.emoji-btn {
+  aspect-ratio: 1; font-size: 1.4rem; background: var(--surface);
+  border: 1px solid var(--border2); border-radius: 6px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; transition: all .15s; line-height: 1;
+}
+.emoji-btn:hover { border-color: var(--green); background: rgba(0,232,122,0.06); }
+.emoji-btn.selected { border-color: var(--green); background: rgba(0,232,122,0.12); }
+
+.avatar-preview {
+  width: 72px; height: 72px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2rem; font-family: 'IBM Plex Mono', monospace; font-weight: 700;
+  border: 2px solid var(--border2); background: var(--surface); overflow: hidden; flex-shrink: 0;
+}
+.avatar-preview img { width: 100%; height: 100%; object-fit: cover; }
+.profile-row { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+.profile-info { flex: 1; }
+.profile-name-display { font-family: 'IBM Plex Mono', monospace; font-size: 1rem; font-weight: 700; color: var(--text); }
+.profile-sub { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; color: var(--text-dim); margin-top: 3px; }
+
+/* ── Room Mode Buttons ── */
+.mode-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+.mode-card {
+  background: var(--surface); border: 1px solid var(--border2); border-radius: 8px;
+  padding: 18px 12px; text-align: center; cursor: pointer; transition: all 0.2s;
+}
+.mode-card:hover { border-color: var(--green); background: rgba(0,232,122,0.04); }
+.mode-card .mode-icon { font-size: 2rem; margin-bottom: 8px; }
+.mode-card .mode-title { font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+.mode-card .mode-sub { font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; color: var(--text-dim); }
+
+/* ── Room Code ── */
+.code-display {
+  background: var(--surface); border: 1px solid var(--border2); border-radius: 8px;
+  padding: 20px; text-align: center; margin-bottom: 14px;
+}
+.code-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; color: var(--text-dim); letter-spacing: 0.1em; margin-bottom: 8px; }
+.code-value { font-family: 'IBM Plex Mono', monospace; font-size: 3rem; font-weight: 700; color: var(--green); letter-spacing: 0.35em; }
+.code-copy-row { display: flex; gap: 8px; justify-content: center; margin-top: 12px; }
+
+.waiting-dots span { animation: blink-dot 1.4s infinite; color: var(--text-dim); }
+.waiting-dots span:nth-child(2) { animation-delay: 0.2s; }
+.waiting-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes blink-dot { 0%, 80%, 100% { opacity: 0.2; } 40% { opacity: 1; } }
+
+/* ── Connection status ── */
+.conn-bar {
+  display: flex; align-items: center; gap: 8px;
+  font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem;
+  padding: 8px 12px; border-radius: 6px; margin-bottom: 12px;
+  background: var(--surface); border: 1px solid var(--border2);
+}
+.conn-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.conn-dot.ok { background: var(--green); }
+.conn-dot.waiting { background: var(--yellow); animation: pulse 1.2s infinite; }
+.conn-dot.err { background: var(--red); }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+/* ── Disconnect overlay ── */
+.dc-overlay {
+  display: none; position: fixed; inset: 0; background: rgba(6,8,9,0.95);
+  z-index: 2000; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(8px);
+}
+.dc-overlay.show { display: flex; }
+.dc-modal {
+  background: var(--panel); border: 1px solid var(--red); border-radius: 14px;
+  padding: 32px 24px; text-align: center; max-width: 320px; width: 100%; box-shadow: 0 0 40px rgba(255,61,61,0.2);
+}
+.dc-icon { font-size: 3rem; margin-bottom: 12px; }
+.dc-title { font-family: 'IBM Plex Mono', monospace; font-size: 0.85rem; color: var(--red); margin-bottom: 6px; letter-spacing: 0.05em; }
+.dc-sub { font-size: 0.85rem; color: var(--text-dim); margin-bottom: 22px; line-height: 1.6; }
+
+/* ══════════════════════════════════════
+   GAME UI
+══════════════════════════════════════ */
+.round-counter {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--yellow);
+  text-align: center;
+  margin-bottom: 10px;
+  letter-spacing: 0.05em;
+  font-weight: bold;
+}
+
+.scoreboard { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: center; margin-bottom: 14px; }
+.player-card {
+  background: var(--surface); border: 1px solid var(--border2); border-radius: 8px;
+  padding: 10px 12px; text-align: center; transition: all 0.3s; position: relative; overflow: hidden;
+}
+.player-card::before { content: ''; position: absolute; inset: 0; opacity: 0; transition: opacity 0.3s; }
+.player-card.p1::before { background: var(--p1-dim); }
+.player-card.p2::before { background: var(--p2-dim); }
+.player-card.active-turn.p1 { border-color: var(--p1); box-shadow: 0 0 16px var(--p1-glow); }
+.player-card.active-turn.p1::before { opacity: 1; }
+.player-card.active-turn.p2 { border-color: var(--p2); box-shadow: 0 0 16px var(--p2-glow); }
+.player-card.active-turn.p2::before { opacity: 1; }
+
+.pc-avatar {
+  width: 36px; height: 36px; border-radius: 50%; margin: 0 auto 6px;
+  display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+  font-family: 'IBM Plex Mono', monospace; font-weight: 700; overflow: hidden;
+  border: 1.5px solid var(--border2); background: var(--panel); position: relative;
+}
+.pc-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.player-card.p1 .pc-avatar { border-color: var(--p1); }
+.player-card.p2 .pc-avatar { border-color: var(--p2); }
+
+.pc-name { font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; font-weight: 600; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.player-card.p1 .pc-name { color: var(--p1); }
+.player-card.p2 .pc-name { color: var(--p2); }
+
+.pc-score { font-family: 'IBM Plex Mono', monospace; font-size: 1.6rem; font-weight: 700; position: relative; }
+.player-card.p1 .pc-score { color: var(--p1); }
+.player-card.p2 .pc-score { color: var(--p2); }
+
+.pc-dots { display: flex; gap: 3px; justify-content: center; margin-top: 6px; position: relative; min-height: 12px; }
+.piece-dot { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid; transition: all 0.3s; }
+.piece-dot.p1 { border-color: var(--p1); }
+.piece-dot.p1.placed { background: var(--p1); box-shadow: 0 0 5px var(--p1); }
+.piece-dot.p2 { border-color: var(--p2); }
+.piece-dot.p2.placed { background: var(--p2); box-shadow: 0 0 5px var(--p2); }
+
+.vs-badge { font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; color: var(--text-dim); text-align: center; letter-spacing: 0.1em; }
+
+/* ── Status bar ── */
+.status-bar {
+  background: var(--surface); border: 1px solid var(--border2); border-radius: 6px;
+  padding: 9px 14px; margin-bottom: 14px; font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.75rem; text-align: center; min-height: 38px; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.3s;
+}
+.status-bar .sdot { width: 7px; height: 7px; border-radius: 50%; animation: pulse 1.2s infinite; flex-shrink: 0; }
+
+/* ── Board ── */
+.board-wrap { display: flex; justify-content: center; margin-bottom: 14px; }
+.board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; width: 100%; max-width: 340px; }
+.cell {
+  aspect-ratio: 1; background: var(--surface); border: 1.5px solid var(--border2);
+  border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s; position: relative; overflow: hidden; user-select: none; -webkit-tap-highlight-color: transparent;
+}
+.cell::after { content: ''; position: absolute; inset: 0; opacity: 0; transition: opacity 0.15s; border-radius: 6px; }
+.cell:not(.occupied):hover::after { opacity: 1; }
+body.turn-p1 .cell:not(.occupied):hover::after { background: var(--p1-dim); }
+body.turn-p2 .cell:not(.occupied):hover::after { background: var(--p2-dim); }
+body.turn-p1 .cell:not(.occupied):hover { border-color: rgba(255,255,255,0.2); }
+body.turn-p2 .cell:not(.occupied):hover { border-color: rgba(255,255,255,0.2); }
+.cell.occupied { cursor: default; }
+.cell.p1-piece { border-color: var(--p1); background: var(--p1-dim); }
+.cell.p2-piece { border-color: var(--p2); background: var(--p2-dim); }
+
+/* Hollow / Default Color Adjustments */
+body.p1-hollow .cell.p1-piece { background: transparent; }
+body.p2-hollow .cell.p2-piece { background: transparent; }
+
+.piece { width: 52%; height: 52%; border-radius: 50%; position: relative; z-index: 1; transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.piece.p1 { background: var(--p1); box-shadow: 0 0 14px var(--p1-glow); }
+.piece.p2 { background: var(--p2); box-shadow: 0 0 14px var(--p2-glow); }
+
+/* Hollow Pieces Styling */
+body.p1-hollow .piece.p1 { background: transparent; border: 3px solid var(--p1); box-shadow: inset 0 0 8px var(--p1-glow), 0 0 14px var(--p1-glow); }
+body.p2-hollow .piece.p2 { background: transparent; border: 3px solid var(--p2); box-shadow: inset 0 0 8px var(--p2-glow), 0 0 14px var(--p2-glow); }
+
+.cell.win-cell { animation: win-flash 0.5s ease 3; }
+@keyframes win-flash { 0%,100%{transform:scale(1)} 50%{transform:scale(1.08)} }
+.cell.p1-piece.win-cell { border-color:var(--p1); background:var(--p1-dim); box-shadow:0 0 20px var(--p1-glow); }
+.cell.p2-piece.win-cell { border-color:var(--p2); background:var(--p2-dim); box-shadow:0 0 20px var(--p2-glow); }
+
+.cell.selectable-piece { cursor: pointer; }
+.cell.p1-piece.selectable-piece { animation: selectable-p1 1s infinite alternate; }
+.cell.p2-piece.selectable-piece { animation: selectable-p2 1s infinite alternate; }
+@keyframes selectable-p1 { from{box-shadow:0 0 6px var(--p1-glow)} to{box-shadow:0 0 18px var(--p1-glow);border-color:var(--p1)} }
+@keyframes selectable-p2 { from{box-shadow:0 0 6px var(--p2-glow)} to{box-shadow:0 0 18px var(--p2-glow);border-color:var(--p2)} }
+.cell.p1-piece.selected-piece { animation:none!important; box-shadow:0 0 24px var(--p1-glow),0 0 0 2px var(--p1); border-color:var(--p1); }
+.cell.p2-piece.selected-piece { animation:none!important; box-shadow:0 0 24px var(--p2-glow),0 0 0 2px var(--p2); border-color:var(--p2); }
+.cell.can-move-to { cursor:pointer; border-style:dashed; }
+body.turn-p1 .cell.can-move-to { border-color:var(--p1); background:var(--p1-dim); }
+body.turn-p2 .cell.can-move-to { border-color:var(--p2); background:var(--p2-dim); }
+
+/* ── Phase tag ── */
+.phase-tag { font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; padding: 3px 8px; border-radius: 4px; border: 1px solid var(--border2); color: var(--text-dim); background: var(--surface); }
+.phase-tag.placing { border-color:var(--yellow); color:var(--yellow); }
+.phase-tag.moving  { border-color:var(--cyan);   color:var(--cyan); }
+
+/* ── Win overlay (Match End) ── */
+.overlay {
+  display: none; position: fixed; inset: 0; background: rgba(6,8,9,0.92);
+  z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(6px); padding: 20px;
+}
+.overlay.show { display: flex; }
+.win-modal {
+  background: var(--panel); border: 1px solid var(--border2); border-radius: 14px;
+  padding: 28px 24px; text-align: center; max-width: 320px; width: 100%; animation: modal-in 0.4s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes modal-in { from{transform:scale(0.7);opacity:0} to{transform:scale(1);opacity:1} }
+.win-avatar {
+  width: 64px; height: 64px; border-radius: 50%; margin: 0 auto 10px;
+  display: flex; align-items: center; justify-content: center; font-size: 2rem;
+  overflow: hidden; border: 2px solid var(--border2); background: var(--surface);
+}
+.win-avatar img { width:100%;height:100%;object-fit:cover; }
+.win-title { font-family:'IBM Plex Mono',monospace; font-size:0.7rem; color:var(--text-dim); letter-spacing:.1em; margin-bottom:4px; }
+.win-name  { font-family:'Tajawal',sans-serif; font-size:1.8rem; font-weight:900; margin-bottom:16px; }
+.win-name.p1 { color:var(--p1); text-shadow:0 0 20px var(--p1-glow); }
+.win-name.p2 { color:var(--p2); text-shadow:0 0 20px var(--p2-glow); }
+.win-score-row { display:flex; gap:8px; justify-content:center; margin-bottom:20px; }
+.win-score-chip {
+  font-family:'IBM Plex Mono',monospace; font-size:0.72rem; padding:5px 12px; border-radius:20px; border:1px solid;
+}
+.win-score-chip.p1 { border-color:var(--p1); color:var(--p1); background:var(--p1-dim); }
+.win-score-chip.p2 { border-color:var(--p2); color:var(--p2); background:var(--p2-dim); }
+.win-btns { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; }
+
+/* ── Rules ── */
+.rules-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:8px; }
+.rule-item {
+  background:var(--surface); border:1px solid var(--border2);
+  border-radius:6px; padding:10px 12px; font-size:0.82rem; line-height:1.6;
+}
+.rule-item .rule-num { font-family:'IBM Plex Mono',monospace; font-size:0.62rem; color:var(--green); margin-bottom:4px; }
+
+/* ── Misc ── */
+.sep { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
+.err-msg { font-family:'IBM Plex Mono',monospace; font-size:0.7rem; color:var(--red); margin-top:6px; }
+.info-msg { font-family:'IBM Plex Mono',monospace; font-size:0.7rem; color:var(--text-dim); margin-top:6px; }
+.row-btns { display:flex; gap:8px; flex-wrap:wrap; }
+
+/* upload area */
+.upload-area {
+  border: 1.5px dashed var(--border2); border-radius: 8px; padding: 20px; text-align: center;
+  cursor: pointer; transition: all .2s; color: var(--text-dim); font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem;
+}
+.upload-area:hover { border-color: var(--green); color: var(--green); }
+</style>
+</head>
+
+<body>
+
+<!-- ══════════════════════════════════
+  DISCONNECT OVERLAY
+══════════════════════════════════ -->
+<div class="dc-overlay" id="dc-overlay">
+  <div class="dc-modal">
+    <div class="dc-icon">🔌</div>
+    <div class="dc-title">// DISCONNECTED</div>
+    <div class="dc-sub" id="dc-msg">انقطع الاتصال بالخصم</div>
+    <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+      <button class="btn btn-green" onclick="goHome()">العودة للقائمة</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+  WIN OVERLAY (MATCH END)
+══════════════════════════════════ -->
+<div class="overlay" id="win-overlay">
+  <div class="win-modal">
+    <div class="win-avatar" id="win-av"></div>
+    <div class="win-title" id="win-title">// MATCH WINNER</div>
+    <div class="win-name" id="win-name">---</div>
+    <div class="win-score-row">
+      <div class="win-score-chip p1" id="final-p1"></div>
+      <div class="win-score-chip p2" id="final-p2"></div>
+    </div>
+    <div class="win-btns">
+      <button class="btn btn-green" id="btn-new-round" onclick="requestNewMatch()">مباراة جديدة</button>
+      <button class="btn btn-dim" onclick="goHome()">الخروج</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+  SCREEN 1 — PROFILE SETUP
+══════════════════════════════════ -->
+<div class="screen active" id="scr-profile">
+  <div class="header">
+    <div class="header-left">
+      <h1>// السيجة — أونلاين</h1>
+      <p>إنشاء ملفك الشخصي</p>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-hd">// هويتك في اللعبة</div>
+
+    <!-- Preview row -->
+    <div class="profile-row">
+      <div class="avatar-preview" id="av-preview">?</div>
+      <div class="profile-info">
+        <div class="profile-name-display" id="name-display">---</div>
+        <div class="profile-sub">معرّفك أمام الخصم</div>
+      </div>
+    </div>
+
+    <!-- Name -->
+    <div class="field">
+      <label>// الاسم (إنجليزي فقط)</label>
+      <input type="text" id="inp-name" placeholder="e.g. Ahmed99" maxlength="16" oninput="onNameInput(this)">
+      <div class="err-msg" id="name-err" style="display:none"></div>
+    </div>
+
+    <!-- Color -->
+    <div class="field">
+      <label>// لونك المميز</label>
+      <div class="color-grid" id="color-grid"></div>
+    </div>
+
+    <!-- Avatar tabs -->
+    <div class="field">
+      <label>// الصورة الرمزية</label>
+      <div class="avatar-tabs">
+        <div class="avatar-tab active" onclick="switchAvatarTab('emoji')">Emoji</div>
+        <div class="avatar-tab" onclick="switchAvatarTab('letter')">حرف</div>
+        <div class="avatar-tab" onclick="switchAvatarTab('upload')">صورة</div>
+      </div>
+
+      <div class="avatar-pane active" id="pane-emoji">
+        <div class="emoji-grid" id="emoji-grid"></div>
+      </div>
+
+      <div class="avatar-pane" id="pane-letter">
+        <div class="info-msg">سيُستخدم أول حرف من اسمك تلقائياً</div>
+      </div>
+
+      <div class="avatar-pane" id="pane-upload">
+        <div class="upload-area" onclick="document.getElementById('file-inp').click()">
+          📁 اضغط لرفع صورة (max 150KB)
+        </div>
+        <input type="file" id="file-inp" accept="image/*" style="display:none" onchange="onFileUpload(this)">
+        <div class="err-msg" id="upload-err" style="display:none"></div>
+      </div>
+    </div>
+
+    <button class="btn btn-green btn-full" onclick="confirmProfile()">التالي ←</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+  SCREEN 2 — LOBBY (host or join)
+══════════════════════════════════ -->
+<div class="screen" id="scr-lobby">
+  <div class="header">
+    <div class="header-left">
+      <h1>// السيجة — أونلاين</h1>
+      <p id="lobby-sub">اختر دورك</p>
+    </div>
+    <button class="btn btn-dim" onclick="goHome()">← رجوع</button>
+  </div>
+
+  <!-- Profile summary -->
+  <div class="panel">
+    <div class="panel-hd">// ملفك</div>
+    <div class="profile-row" style="margin-bottom:0">
+      <div class="avatar-preview" id="lobby-av" style="width:48px;height:48px;font-size:1.4rem;"></div>
+      <div class="profile-info">
+        <div class="profile-name-display" id="lobby-name"></div>
+        <div class="profile-sub">جاهز للعب</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mode selection -->
+  <div class="panel" id="mode-panel">
+    <div class="panel-hd">// اختر دورك</div>
+    <div class="mode-grid">
+      <div class="mode-card" onclick="startHost()">
+        <div class="mode-icon">🏠</div>
+        <div class="mode-title">مضيف</div>
+        <div class="mode-sub">أنشئ غرفة وشارك الكود</div>
+      </div>
+      <div class="mode-card" onclick="showJoinPanel()">
+        <div class="mode-icon">🎮</div>
+        <div class="mode-title">لاعب</div>
+        <div class="mode-sub">ادخل كود الغرفة</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HOST panel -->
+  <div class="panel" id="host-panel" style="display:none">
+    <div class="panel-hd">// غرفتك</div>
+    <div class="conn-bar">
+      <div class="conn-dot waiting" id="host-conn-dot"></div>
+      <span id="host-conn-txt">جاري إنشاء الغرفة...</span>
+    </div>
+    <div class="code-display">
+      <div class="code-label">// شارك هذا الكود مع الخصم</div>
+      <div class="code-value" id="room-code">----</div>
+      <div class="code-copy-row">
+        <button class="btn btn-dim" onclick="copyCode()">📋 نسخ الكود</button>
+      </div>
+    </div>
+    <div style="text-align:center;color:var(--text-dim);font-family:'IBM Plex Mono',monospace;font-size:0.72rem;">
+      ينتظر اتصال الخصم<span class="waiting-dots"><span>.</span><span>.</span><span>.</span></span>
+    </div>
+    <hr class="sep">
+    <button class="btn btn-dim" onclick="cancelHost()">إلغاء</button>
+  </div>
+
+  <!-- JOIN panel -->
+  <div class="panel" id="join-panel" style="display:none">
+    <div class="panel-hd">// انضم لغرفة</div>
+    <div class="conn-bar">
+      <div class="conn-dot waiting" id="join-conn-dot" style="display:none"></div>
+      <span id="join-conn-txt">أدخل كود الغرفة</span>
+    </div>
+    <div class="field">
+      <label>// كود الغرفة (4 أرقام)</label>
+      <input type="text" id="inp-code" placeholder="مثال: 4821" maxlength="4"
+             style="direction:ltr;font-size:1.5rem;text-align:center;letter-spacing:0.2em"
+             oninput="this.value=this.value.replace(/\D/g,'')">
+      <div class="err-msg" id="join-err" style="display:none"></div>
+    </div>
+    <div class="row-btns">
+      <button class="btn btn-green" onclick="joinRoom()">اتصال</button>
+      <button class="btn btn-dim" onclick="cancelJoin()">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+  SCREEN 3 — GAME
+══════════════════════════════════ -->
+<div class="screen" id="scr-game">
+  <div class="header">
+    <div class="header-left">
+      <h1>// السيجة</h1>
+      <div class="round-counter" id="round-display">الدور 1 من 4</div>
+    </div>
+    <div style="display:flex;gap:6px;align-items:center;">
+      <span class="phase-tag" id="phase-tag">وضع القطع</span>
+    </div>
+  </div>
+
+  <!-- Connection bar -->
+  <div class="conn-bar" id="game-conn-bar">
+    <div class="conn-dot ok" id="game-conn-dot"></div>
+    <span id="game-conn-txt">متصل</span>
+  </div>
+
+  <!-- Scoreboard -->
+  <div class="scoreboard">
+    <div class="player-card p1" id="card-p1">
+      <div class="pc-avatar" id="av-p1"></div>
+      <div class="pc-name"  id="nm-p1">---</div>
+      <div class="pc-score" id="sc-p1">0</div>
+      <div class="pc-dots"  id="dt-p1"></div>
+    </div>
+    <div class="vs-badge">VS</div>
+    <div class="player-card p2" id="card-p2">
+      <div class="pc-avatar" id="av-p2"></div>
+      <div class="pc-name"  id="nm-p2">---</div>
+      <div class="pc-score" id="sc-p2">0</div>
+      <div class="pc-dots"  id="dt-p2"></div>
+    </div>
+  </div>
+
+  <!-- Status -->
+  <div class="status-bar" id="status-bar">
+    <span class="sdot" id="sdot" style="background:var(--p1)"></span>
+    <span id="status-txt">جاري التحميل...</span>
+  </div>
+
+  <!-- Board -->
+  <div class="board-wrap">
+    <div class="board" id="board"></div>
+  </div>
+
+  <!-- Controls -->
+  <div class="panel">
+    <div class="row-btns">
+      <button class="btn btn-dim" onclick="goHome()">← الخروج</button>
+    </div>
+  </div>
+
+  <!-- Rules -->
+  <div class="panel">
+    <div class="panel-hd">// قواعد اللعبة</div>
+    <div class="rules-grid">
+      <div class="rule-item"><div class="rule-num">01 — الهدف</div>رتّب 3 قطع في صف أو عمود أو قطري.</div>
+      <div class="rule-item"><div class="rule-num">02 — الوضع</div>كل لاعب يضع 3 قطع بالتبادل على أي خلية فارغة.</div>
+      <div class="rule-item"><div class="rule-num">03 — الحركة</div>بعد وضع الجميع، حرّك قطعة لأي خلية فارغة.</div>
+      <div class="rule-item"><div class="rule-num">04 — الفوز</div>أول من يرتب 3 قطع في خط يفوز.</div>
+      <div class="rule-item"><div class="rule-num">05 — المباراة</div>تتكون المباراة من 4 أدوار، الفائز من يحصد نقاطاً أكثر.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+  JAVASCRIPT
+══════════════════════════════════════════════════════ -->
+<script>
+'use strict';
+
+/* ────────────────────────────────────────
+   CONSTANTS & CONFIG
+──────────────────────────────────────── */
+const EMOJIS = ['😀','😎','🤖','👾','🐉','🦊','🐺','🦁','🐯','🦅','🦋','🌙','⭐','🔥','💎','⚡','🎯','🎮','🏆','🚀','🎲','🃏','♟️','🌊','🌪️','🌈','🍀','💀','👑','🎭'];
+
+const COLORS = [
+  { id: 'default', hex: '#9B9B9B', borderOnly: true },
+  { id: 'gray',    hex: '#454545' },
+  { id: 'brown',   hex: '#43302B' },
+  { id: 'orange',  hex: '#593A1F' },
+  { id: 'yellow',  hex: '#4D411E' },
+  { id: 'green',   hex: '#1C3829' },
+  { id: 'blue',    hex: '#283D56' },
+  { id: 'purple',  hex: '#372744' },
+  { id: 'pink',    hex: '#492936' },
+  { id: 'red',     hex: '#522E2A' }
+];
+
+const PIECES = 3;
+const MAX_ROUNDS = 4;
+const WIN_LINES = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+
+/* ────────────────────────────────────────
+   PROFILE STATE
+──────────────────────────────────────── */
+let myProfile = { name: '', avatar: { type: 'letter', value: '?' }, color: COLORS[0] }; 
+let avatarTab = 'emoji';
+let selectedEmoji = '';
+let uploadedImg = '';   // base64 small
+
+/* ────────────────────────────────────────
+   NETWORK STATE
+──────────────────────────────────────── */
+let peer = null;
+let conn = null;
+let isHost = false;
+let myRole = null;   // 'p1' (host) | 'p2' (joiner)
+let roomCode = '';
+
+/* ────────────────────────────────────────
+   GAME STATE
+──────────────────────────────────────── */
+let board        = Array(9).fill(null);
+let currentTurn  = 'p1';
+let phase        = 'placing';
+let placedCount  = { p1:0, p2:0 };
+let score        = { p1:0, p2:0 };
+let gameOver     = false;
+let selectedCell = null;
+let players      = { p1: null, p2: null }; 
+
+// Match State
+let currentRound = 1;
+let firstPlayerOfRound = 'p1';
+let matchOver = false;
+let newMatchVotes= { p1: false, p2: false };
+let gameStarted  = false;
+
+/* ════════════════════════════════════════
+   SCREEN HELPERS
+════════════════════════════════════════ */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function goHome() {
+  destroyPeer();
+  document.getElementById('dc-overlay').classList.remove('show');
+  document.getElementById('win-overlay').classList.remove('show');
+  document.getElementById('host-panel').style.display = 'none';
+  document.getElementById('join-panel').style.display = 'none';
+  document.getElementById('mode-panel').style.display = 'block';
+  document.getElementById('inp-code').value = '';
+  document.getElementById('join-err').style.display = 'none';
+  showScreen('scr-lobby');
+  refreshLobbyProfile();
+}
+
+/* ════════════════════════════════════════
+   PROFILE SCREEN (COLORS & AVATAR)
+════════════════════════════════════════ */
+function buildColorGrid() {
+  const grid = document.getElementById('color-grid');
+  grid.innerHTML = '';
+  COLORS.forEach((c) => {
+    const btn = document.createElement('div');
+    btn.className = 'color-btn' + (c.borderOnly ? ' hollow' : '');
+    btn.style.backgroundColor = c.hex;
+    btn.onclick = () => selectColor(c, btn);
+    grid.appendChild(btn);
+  });
+  // Select first by default
+  selectColor(COLORS[0], grid.firstChild);
+}
+
+function selectColor(color, btnEl) {
+  myProfile.color = color;
+  document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('selected'));
+  if (btnEl) btnEl.classList.add('selected');
+}
+
+function buildEmojiGrid() {
+  const grid = document.getElementById('emoji-grid');
+  grid.innerHTML = '';
+  EMOJIS.forEach(e => {
+    const btn = document.createElement('button');
+    btn.className = 'emoji-btn';
+    btn.textContent = e;
+    btn.onclick = () => selectEmoji(e);
+    grid.appendChild(btn);
+  });
+}
+
+function selectEmoji(e) {
+  selectedEmoji = e;
+  document.querySelectorAll('.emoji-btn').forEach(b => b.classList.toggle('selected', b.textContent === e));
+  updateAvatarPreview();
+}
+
+function switchAvatarTab(tab) {
+  avatarTab = tab;
+  document.querySelectorAll('.avatar-tab').forEach((t,i) => {
+    const tabs = ['emoji','letter','upload'];
+    t.classList.toggle('active', tabs[i] === tab);
+  });
+  document.querySelectorAll('.avatar-pane').forEach(p => p.classList.remove('active'));
+  document.getElementById(`pane-${tab}`).classList.add('active');
+  updateAvatarPreview();
+}
+
+function onNameInput(inp) {
+  inp.value = inp.value.replace(/[^a-zA-Z0-9_]/g,'');
+  document.getElementById('name-display').textContent = inp.value || '---';
+  updateAvatarPreview();
+  inp.classList.remove('err');
+  document.getElementById('name-err').style.display = 'none';
+}
+
+function updateAvatarPreview() {
+  const av = document.getElementById('av-preview');
+  const name = document.getElementById('inp-name').value;
+  renderAvatar(av, buildAvatarObj(name));
+}
+
+function buildAvatarObj(name) {
+  if (avatarTab === 'emoji' && selectedEmoji) return { type:'emoji', value: selectedEmoji };
+  if (avatarTab === 'upload' && uploadedImg)  return { type:'img',   value: uploadedImg };
+  const ch = name ? name[0].toUpperCase() : '?';
+  return { type:'letter', value: ch };
+}
+
+function renderAvatar(el, av) {
+  el.innerHTML = '';
+  if (av.type === 'img') {
+    const img = document.createElement('img');
+    img.src = av.value;
+    el.appendChild(img);
+  } else {
+    el.textContent = av.value;
+  }
+}
+
+function onFileUpload(inp) {
+  const file = inp.files[0];
+  if (!file) return;
+  if (file.size > 150 * 1024) {
+    document.getElementById('upload-err').textContent = 'الصورة أكبر من 150KB — اختر صورة أصغر';
+    document.getElementById('upload-err').style.display = 'block';
+    return;
+  }
+  document.getElementById('upload-err').style.display = 'none';
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = canvas.height = 64;
+      const ctx = canvas.getContext('2d');
+      const s = Math.min(img.width, img.height);
+      const ox = (img.width - s) / 2, oy = (img.height - s) / 2;
+      ctx.drawImage(img, ox, oy, s, s, 0, 0, 64, 64);
+      uploadedImg = canvas.toDataURL('image/jpeg', 0.7);
+      updateAvatarPreview();
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function confirmProfile() {
+  const nameInp = document.getElementById('inp-name');
+  const name = nameInp.value.trim();
+  if (!name || name.length < 2) {
+    nameInp.classList.add('err');
+    document.getElementById('name-err').textContent = 'الاسم يجب أن يكون حرفين على الأقل';
+    document.getElementById('name-err').style.display = 'block';
+    return;
+  }
+  myProfile.name = name;
+  myProfile.avatar = buildAvatarObj(name);
+  refreshLobbyProfile();
+  showScreen('scr-lobby');
+}
+
+function refreshLobbyProfile() {
+  document.getElementById('lobby-name').textContent = myProfile.name;
+  renderAvatar(document.getElementById('lobby-av'), myProfile.avatar);
+}
+
+/* ════════════════════════════════════════
+   PEER HELPERS
+════════════════════════════════════════ */
+function generateCode() {
+  return String(Math.floor(1000 + Math.random() * 9000)); // 4 digits 1000-9999
+}
+
+function destroyPeer() {
+  if (conn) { try { conn.close(); } catch(e){} conn = null; }
+  if (peer) { try { peer.destroy(); } catch(e){} peer = null; }
+  isHost = false; myRole = null; gameStarted = false;
+}
+
+function peerError(err) {
+  console.warn('PeerJS err:', err);
+}
+
+/* ════════════════════════════════════════
+   HOST FLOW
+════════════════════════════════════════ */
+function startHost() {
+  document.getElementById('mode-panel').style.display = 'none';
+  document.getElementById('host-panel').style.display = 'block';
+  setConnBar('host', 'waiting', 'جاري إنشاء الغرفة...');
+
+  roomCode = generateCode();
+  isHost = true;
+  myRole = 'p1';
+
+  // pingInterval keeps connection alive
+  peer = new Peer(roomCode, { debug: 0, pingInterval: 5000 });
+
+  peer.on('open', id => {
+    document.getElementById('room-code').textContent = roomCode;
+    setConnBar('host', 'waiting', 'في انتظار الخصم...');
+  });
+
+  peer.on('connection', c => {
+    if (conn) { c.close(); return; } 
+    conn = c;
+    setupConn();
+  });
+
+  peer.on('error', e => {
+    if (e.type === 'unavailable-id') {
+      roomCode = generateCode();
+      peer.destroy();
+      startHost();
+    } else { peerError(e); }
+  });
+}
+
+function cancelHost() {
+  destroyPeer();
+  document.getElementById('host-panel').style.display = 'none';
+  document.getElementById('mode-panel').style.display = 'block';
+}
+
+/* ════════════════════════════════════════
+   JOIN FLOW
+════════════════════════════════════════ */
+function showJoinPanel() {
+  document.getElementById('mode-panel').style.display = 'none';
+  document.getElementById('join-panel').style.display = 'block';
+}
+
+function cancelJoin() {
+  destroyPeer();
+  document.getElementById('join-panel').style.display = 'none';
+  document.getElementById('join-err').style.display = 'none';
+  document.getElementById('mode-panel').style.display = 'block';
+}
+
+function joinRoom() {
+  const code = document.getElementById('inp-code').value.trim();
+  if (code.length !== 4) {
+    showJoinErr('الكود يجب أن يكون 4 أرقام');
+    return;
+  }
+  document.getElementById('join-err').style.display = 'none';
+  document.getElementById('join-conn-dot').style.display = 'block';
+  setConnBar('join', 'waiting', 'جاري الاتصال...');
+
+  isHost = false;
+  myRole = 'p2';
+  peer = new Peer(undefined, { debug: 0, pingInterval: 5000 });
+
+  peer.on('open', myId => {
+    conn = peer.connect(code, { reliable: true });
+    setupConn();
+  });
+
+  peer.on('error', e => {
+    if (e.type === 'peer-unavailable') {
+      showJoinErr('الكود غير صحيح أو الغرفة غير موجودة');
+      setConnBar('join', 'err', 'فشل الاتصال');
+    } else { peerError(e); }
+    document.getElementById('join-conn-dot').style.display = 'none';
+  });
+}
+
+function showJoinErr(msg) {
+  const el = document.getElementById('join-err');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+/* ════════════════════════════════════════
+   CONN SETUP (both sides)
+════════════════════════════════════════ */
+function setupConn() {
+  conn.on('open', () => {
+    send({ type: 'hello', profile: myProfile, role: myRole });
+    if (!isHost) setConnBar('join', 'ok', 'متصل — في انتظار بدء اللعبة...');
+  });
+
+  conn.on('data', onMessage);
+
+  conn.on('close', () => onDisconnect('أغلق الخصم الاتصال'));
+  conn.on('error', () => onDisconnect('خطأ في الاتصال'));
+}
+
+function send(obj) {
+  if (conn && conn.open) conn.send(obj);
+}
+
+/* ════════════════════════════════════════
+   MESSAGE HANDLER
+════════════════════════════════════════ */
+function onMessage(msg) {
+  switch (msg.type) {
+    case 'hello': {
+      const oppRole = myRole === 'p1' ? 'p2' : 'p1';
+      players[myRole]  = myProfile;
+      players[oppRole] = msg.profile;
+
+      if (isHost) {
+        setConnBar('host', 'ok', 'متصل بـ ' + msg.profile.name);
+        initMatch(); 
+        send({ type: 'start', players, currentRound, firstPlayerOfRound });
+      }
+      break;
+    }
+
+    case 'start': {
+      // Guest receives match start
+      players = msg.players;
+      currentRound = msg.currentRound;
+      firstPlayerOfRound = msg.firstPlayerOfRound;
+      score = { p1:0, p2:0 };
+      matchOver = false;
+      newMatchVotes = { p1:false, p2:false };
+      gameStarted = true;
+      
+      applyPlayerColors();
+      setConnBar('join', 'ok', 'متصل بـ ' + players.p1.name);
+      showScreen('scr-game');
+      startRound();
+      break;
+    }
+
+    case 'move': {
+      // Guest sending move to Host
+      applyMove(msg.move);
+      break;
+    }
+
+    case 'vote-new-match': {
+      newMatchVotes[msg.role] = true;
+      if (newMatchVotes.p1 && newMatchVotes.p2) {
+        initMatch();
+        if (isHost) send({ type: 'start', players, currentRound, firstPlayerOfRound });
+      }
+      break;
+    }
+
+    case 'sync': {
+      // Guest syncs state from host
+      board        = msg.board;
+      currentTurn  = msg.currentTurn;
+      phase        = msg.phase;
+      score        = msg.score;
+      placedCount  = msg.placedCount;
+      gameOver     = msg.gameOver;
+      currentRound = msg.currentRound;
+      matchOver    = msg.matchOver;
+      selectedCell = null;
+      
+      updateRoundDisplay();
+      buildDots();
+      render();
+
+      if (msg.roundWinner) {
+        highlightWin(msg.roundWinner.line);
+        document.getElementById('status-txt').textContent = `انتهى الدور! فوز ${players[msg.roundWinner.player].name}`;
+      } else if (msg.matchWinner) {
+        const w = checkWin();
+        if(w) highlightWin(w.line);
+        setTimeout(() => showFinalWinOverlay(), 1500);
+      }
+      break;
+    }
+  }
+}
+
+/* ════════════════════════════════════════
+   COLORS APPLY
+════════════════════════════════════════ */
+function hexToRgb(hex) {
+  let c = hex.substring(1);
+  if (c.length === 3) c = c.split('').map(x => x + x).join('');
+  let num = parseInt(c, 16);
+  return `${(num >> 16) & 255}, ${(num >> 8) & 255}, ${num & 255}`;
+}
+
+function applyPlayerColors() {
+  ['p1', 'p2'].forEach(p => {
+    const col = players[p].color;
+    const rgb = hexToRgb(col.hex);
+    document.documentElement.style.setProperty(`--${p}`, col.hex);
+    document.documentElement.style.setProperty(`--${p}-glow`, `rgba(${rgb}, 0.35)`);
+    document.documentElement.style.setProperty(`--${p}-dim`, `rgba(${rgb}, 0.15)`);
+    
+    if (col.borderOnly) {
+      document.body.classList.add(`${p}-hollow`);
+    } else {
+      document.body.classList.remove(`${p}-hollow`);
+    }
+  });
+}
+
+/* ════════════════════════════════════════
+   DISCONNECTION
+════════════════════════════════════════ */
+function onDisconnect(reason) {
+  if (!gameStarted && !document.getElementById('scr-game').classList.contains('active')) return;
+  document.getElementById('dc-msg').textContent = reason;
+  document.getElementById('dc-overlay').classList.add('show');
+}
+
+function setConnBar(side, state, msg) {
+  const dot = document.getElementById(`${side}-conn-dot`);
+  const txt = document.getElementById(`${side}-conn-txt`);
+  if (!dot || !txt) return;
+  dot.className = `conn-dot ${state}`;
+  txt.textContent = msg;
+}
+
+/* ════════════════════════════════════════
+   GAME INIT & ROUNDS
+════════════════════════════════════════ */
+function initMatch() {
+  currentRound = 1;
+  score = { p1:0, p2:0 };
+  matchOver = false;
+  newMatchVotes = { p1:false, p2:false };
+  gameStarted = true;
+  firstPlayerOfRound = Math.random() < 0.5 ? 'p1' : 'p2'; // عشوائي في البداية
+  
+  applyPlayerColors();
+  showScreen('scr-game');
+  document.getElementById('win-overlay').classList.remove('show');
+  startRound();
+}
+
+function startRound() {
+  board        = Array(9).fill(null);
+  currentTurn  = firstPlayerOfRound;
+  phase        = 'placing';
+  placedCount  = { p1:0, p2:0 };
+  gameOver     = false;
+  selectedCell = null;
+  
+  updateRoundDisplay();
+  buildBoard();
+  buildDots();
+  render();
+}
+
+function updateRoundDisplay() {
+  document.getElementById('round-display').textContent = `الدور ${currentRound} من ${MAX_ROUNDS}`;
+}
+
+/* ════════════════════════════════════════
+   BOARD DOM
+════════════════════════════════════════ */
+function buildBoard() {
+  const el = document.getElementById('board');
+  el.innerHTML = '';
+  for (let i = 0; i < 9; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    cell.dataset.index = i;
+    cell.addEventListener('click', () => handleClick(i));
+    el.appendChild(cell);
+  }
+}
+
+function buildDots() {
+  ['p1','p2'].forEach(p => {
+    const el = document.getElementById(`dt-${p}`);
+    if (!el) return;
+    el.innerHTML = '';
+    for (let i = 0; i < PIECES; i++) {
+      const d = document.createElement('div');
+      d.className = `piece-dot ${p}`;
+      d.id = `${p}-dot-${i}`;
+      el.appendChild(d);
+    }
+  });
+}
+
+/* ════════════════════════════════════════
+   RENDER
+════════════════════════════════════════ */
+function render() {
+  // player cards
+  ['p1','p2'].forEach(p => {
+    const av = document.getElementById(`av-${p}`);
+    const nm = document.getElementById(`nm-${p}`);
+    const sc = document.getElementById(`sc-${p}`);
+    const card = document.getElementById(`card-${p}`);
+    if (players[p]) {
+      renderAvatar(av, players[p].avatar);
+      nm.textContent = players[p].name;
+    }
+    sc.textContent = score[p];
+    card.classList.toggle('active-turn', currentTurn === p && !gameOver);
+    
+    // dots
+    for (let i = 0; i < PIECES; i++) {
+      const dot = document.getElementById(`${p}-dot-${i}`);
+      if (dot) dot.classList.toggle('placed', i < placedCount[p]);
+    }
+  });
+
+  // cells
+  document.querySelectorAll('.cell').forEach((cell, i) => {
+    cell.className = 'cell';
+    cell.innerHTML = '';
+    if (board[i]) {
+      const p = board[i];
+      cell.classList.add('occupied', `${p}-piece`);
+      const piece = document.createElement('div');
+      piece.className = `piece ${p}`;
+      cell.appendChild(piece);
+      if (!gameOver && phase === 'moving' && p === myRole && p === currentTurn && selectedCell === null) {
+        cell.classList.add('selectable-piece');
+      }
+      if (selectedCell === i) cell.classList.add('selected-piece');
+    } else {
+      if (!gameOver && phase === 'moving' && selectedCell !== null) {
+        cell.classList.add('can-move-to');
+      }
+    }
+  });
+
+  document.body.className = `turn-${currentTurn}`;
+  
+  if(players.p1.color.borderOnly) document.body.classList.add('p1-hollow');
+  if(players.p2.color.borderOnly) document.body.classList.add('p2-hollow');
+
+  updateStatus();
+  updatePhaseTag();
+}
+
+function updateStatus() {
+  const dot  = document.getElementById('sdot');
+  const txt  = document.getElementById('status-txt');
+  const bar  = document.getElementById('status-bar');
+
+  const color = currentTurn === 'p1' ? 'var(--p1)' : 'var(--p2)';
+  dot.style.background = color;
+  bar.style.borderColor = '';
+
+  const isMyTurn = (currentTurn === myRole) && !gameOver;
+  const turnName = players[currentTurn] ? players[currentTurn].name : currentTurn;
+
+  if (gameOver) { bar.style.borderColor = 'var(--green)'; return; }
+
+  if (phase === 'placing') {
+    const left = (PIECES - placedCount.p1) + (PIECES - placedCount.p2);
+    txt.textContent = isMyTurn
+      ? `دورك — ضع قطعتك (بقي ${left})`
+      : `${turnName} يضع...`;
+  } else {
+    if (isMyTurn) {
+      txt.textContent = selectedCell === null ? 'دورك — اختر قطعة لتحريكها' : 'اختر خلية فارغة';
+    } else {
+      txt.textContent = `${turnName} يحرك...`;
+    }
+  }
+}
+
+function updatePhaseTag() {
+  const tag = document.getElementById('phase-tag');
+  tag.className = `phase-tag ${phase}`;
+  tag.textContent = phase === 'placing' ? 'وضع القطع' : 'مرحلة الحركة';
+}
+
+/* ════════════════════════════════════════
+   CLICK HANDLER (only my role can click)
+════════════════════════════════════════ */
+function handleClick(idx) {
+  if (gameOver || matchOver) return;
+  if (currentTurn !== myRole) return;  
+
+  let move = null;
+
+  if (phase === 'placing') {
+    if (board[idx] !== null) return;
+    move = { type: 'place', idx };
+  } else {
+    if (selectedCell === null) {
+      if (board[idx] !== myRole) return;
+      selectedCell = idx;
+      render();
+      return;
+    } else {
+      if (idx === selectedCell) { selectedCell = null; render(); return; }
+      if (board[idx] === myRole) { selectedCell = idx; render(); return; }
+      if (board[idx] !== null) return;
+      move = { type: 'move', from: selectedCell, to: idx };
+    }
+  }
+
+  if (!move) return;
+
+  if (isHost) {
+    applyMove(move);
+  } else {
+    send({ type: 'move', move });
+  }
+}
+
+/* ════════════════════════════════════════
+   APPLY MOVE (host authoritative)
+════════════════════════════════════════ */
+function applyMove(move) {
+  if (gameOver || matchOver) return;
+
+  if (move.type === 'place') {
+    if (board[move.idx] !== null) return;
+    board[move.idx] = currentTurn;
+    placedCount[currentTurn]++;
+    if (placedCount.p1 === PIECES && placedCount.p2 === PIECES) phase = 'moving';
+  } else if (move.type === 'move') {
+    if (board[move.from] !== currentTurn) return;
+    if (board[move.to] !== null) return;
+    board[move.to] = currentTurn;
+    board[move.from] = null;
+  }
+
+  selectedCell = null;
+
+  const win = checkWin();
+  if (win) {
+    score[win.player]++;
+    gameOver = true;
+
+    if (isHost) {
+      if (currentRound < MAX_ROUNDS) {
+        broadcastState({ roundWinner: win });
+        highlightWin(win.line);
+        document.getElementById('status-txt').textContent = `انتهى الدور! فوز ${players[win.player].name}`;
+        
+        // Wait then auto start next round
+        setTimeout(() => {
+          currentRound++;
+          firstPlayerOfRound = firstPlayerOfRound === 'p1' ? 'p2' : 'p1';
+          startRound();
+          broadcastState();
+        }, 3000);
+      } else {
+        matchOver = true;
+        broadcastState({ matchWinner: true });
+        highlightWin(win.line);
+        setTimeout(() => showFinalWinOverlay(), 1500);
+      }
+    } else {
+      highlightWin(win.line);
+    }
+    render();
+    return;
+  }
+
+  // Switch turn
+  currentTurn = currentTurn === 'p1' ? 'p2' : 'p1';
+
+  if (isHost) broadcastState();
+  render();
+}
+
+function broadcastState(options = {}) {
+  send({
+    type: 'sync',
+    board, currentTurn, phase, score, placedCount, gameOver,
+    currentRound, matchOver,
+    roundWinner: options.roundWinner || null,
+    matchWinner: options.matchWinner || false
+  });
+}
+
+/* ════════════════════════════════════════
+   WIN LOGIC
+════════════════════════════════════════ */
+function checkWin() {
+  for (const [a,b,c] of WIN_LINES) {
+    if (board[a] && board[a] === board[b] && board[b] === board[c])
+      return { player: board[a], line: [a,b,c] };
+  }
+  return null;
+}
+
+function highlightWin(line) {
+  line.forEach(idx => {
+    const cell = document.querySelector(`[data-index="${idx}"]`);
+    if (cell) cell.classList.add('win-cell');
+  });
+}
+
+function showFinalWinOverlay() {
+  document.getElementById('btn-new-round').style.display = 'inline-flex';
+  document.getElementById('win-overlay').classList.add('show');
+
+  const finalP1 = document.getElementById('final-p1');
+  const finalP2 = document.getElementById('final-p2');
+  finalP1.textContent = `${players.p1.name}: ${score.p1}`;
+  finalP2.textContent = `${players.p2.name}: ${score.p2}`;
+
+  const wn = document.getElementById('win-name');
+  const av = document.getElementById('win-av');
+  const title = document.getElementById('win-title');
+
+  if (score.p1 > score.p2) {
+    title.textContent = '// MATCH WINNER';
+    wn.textContent = players.p1.name;
+    wn.className = 'win-name p1';
+    renderAvatar(av, players.p1.avatar);
+    av.style.borderColor = 'var(--p1)';
+  } else if (score.p2 > score.p1) {
+    title.textContent = '// MATCH WINNER';
+    wn.textContent = players.p2.name;
+    wn.className = 'win-name p2';
+    renderAvatar(av, players.p2.avatar);
+    av.style.borderColor = 'var(--p2)';
+  } else {
+    // التعادل
+    title.textContent = '// DRAW';
+    wn.textContent = 'تعادل!';
+    wn.className = 'win-name';
+    wn.style.color = 'var(--text)';
+    wn.style.textShadow = 'none';
+    av.innerHTML = '🤝';
+    av.style.borderColor = 'var(--text-dim)';
+  }
+}
+
+function requestNewMatch() {
+  newMatchVotes[myRole] = true;
+  send({ type: 'vote-new-match', role: myRole });
+  document.getElementById('btn-new-round').textContent = 'في انتظار الخصم...';
+  document.getElementById('btn-new-round').disabled = true;
+  
+  if (newMatchVotes.p1 && newMatchVotes.p2) {
+    initMatch();
+    if (isHost) send({ type: 'start', players, currentRound, firstPlayerOfRound });
+  }
+}
+
+/* ════════════════════════════════════════
+   COPY CODE
+════════════════════════════════════════ */
+function copyCode() {
+  navigator.clipboard.writeText(roomCode).then(() => {
+    const btn = event.target;
+    const orig = btn.textContent;
+    btn.textContent = '✓ تم النسخ';
+    setTimeout(() => btn.textContent = orig, 1500);
+  });
+}
+
+/* ════════════════════════════════════════
+   INIT
+════════════════════════════════════════ */
+buildColorGrid();
+buildEmojiGrid();
+selectEmoji(EMOJIS[0]);
+</script>
+</body>
+</html>
